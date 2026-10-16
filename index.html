@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Game kiểm tra tốc độ - Bài 38a</title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            background-color: #f0f4f8;
+        }
+
+        h1 {
+            color: #2563eb;
+        }
+
+        .info {
+            font-size: 20px;
+            margin: 15px;
+        }
+
+        #score {
+            color: green;
+            font-weight: bold;
+        }
+
+        #time {
+            color: red;
+            font-weight: bold;
+        }
+
+        button {
+            padding: 12px 20px;
+            margin: 5px;
+            border: none;
+            border-radius: 6px;
+            color: white;
+            background-color: #2563eb;
+            cursor: pointer;
+            font-size: 15px;
+        }
+
+        button:hover {
+            background-color: #1d4ed8;
+        }
+
+        button:disabled {
+            background-color: #9ca3af;
+            cursor: not-allowed;
+        }
+
+        #timeInput {
+            width: 70px;
+            padding: 8px;
+            font-size: 16px;
+        }
+
+        #arena {
+            width: 600px;
+            height: 400px;
+            margin: 20px auto;
+            background-color: #dbeafe;
+            border: 3px solid #2563eb;
+            border-radius: 10px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        #target {
+            width: 30px;
+            height: 30px;
+            background-color: #ef4444;
+            border-radius: 50%;
+            position: absolute;
+            display: none;
+            cursor: pointer;
+        }
+
+        #message {
+            font-size: 20px;
+            font-weight: bold;
+            margin-top: 15px;
+            color: #1d4ed8;
+        }
+
+        #playerInfo {
+            font-size: 18px;
+            color: #7c3aed;
+            margin: 15px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+
+<body>
+
+    <h1>🎯 Game kiểm tra tốc độ phản xạ</h1>
+
+    <div class="info">
+        Điểm số: <span id="score">0</span>
+        &nbsp; | &nbsp;
+        Thời gian: <span id="time">30</span> giây
+    </div>
+
+    <div>
+        <label for="timeInput">Chọn thời gian (giây): </label>
+        <input type="number" id="timeInput"
+               value="30" min="1" max="3600">
+    </div>
+
+    <div>
+        <button id="startBtn">Bắt đầu trò chơi</button>
+
+        <button id="colorBtn">Đổi màu nền trò chơi ngẫu nhiên</button>
+
+        <button id="playerBtn">Người chơi</button>
+    </div>
+
+    <div id="playerInfo"></div>
+
+    <div id="arena">
+        <div id="target"></div>
+    </div>
+
+    <div id="message">Nhấn nút để bắt đầu chơi!</div>
+
+    <script>
+        const arena = document.getElementById("arena");
+        const target = document.getElementById("target");
+        const scoreDisplay = document.getElementById("score");
+        const timeDisplay = document.getElementById("time");
+        const startBtn = document.getElementById("startBtn");
+        const colorBtn = document.getElementById("colorBtn");
+        const playerBtn = document.getElementById("playerBtn");
+        const timeInput = document.getElementById("timeInput");
+        const message = document.getElementById("message");
+        const playerInfo = document.getElementById("playerInfo");
+
+        let score = 0;
+        let timeLeft = 30;
+        let gameRunning = false;
+        let timer;
+        let moveTimer;
+
+        const studentID = "231A010561";
+
+        function moveTarget() {
+            const maxLeft = arena.clientWidth - target.offsetWidth;
+            const maxTop = arena.clientHeight - target.offsetHeight;
+
+            const left = Math.random() * maxLeft;
+            const top = Math.random() * maxTop;
+
+            target.style.left = left + "px";
+            target.style.top = top + "px";
+        }
+
+        function startGame() {
+            if (gameRunning) return;
+
+            const selectedTime = Number(timeInput.value);
+
+            if (!Number.isInteger(selectedTime) ||
+                selectedTime < 1 ||
+                selectedTime > 3600) {
+                alert("Vui lòng chọn thời gian từ 1 đến 3600 giây!");
+                return;
+            }
+
+            clearInterval(timer);
+            clearInterval(moveTimer);
+
+            score = 0;
+            timeLeft = selectedTime;
+            gameRunning = true;
+
+            scoreDisplay.textContent = score;
+            timeDisplay.textContent = timeLeft;
+
+            message.textContent = "Nhanh tay click vào hình tròn!";
+            startBtn.disabled = true;
+            timeInput.disabled = true;
+
+            target.style.display = "block";
+            moveTarget();
+
+            moveTimer = setInterval(function () {
+                if (gameRunning) {
+                    moveTarget();
+                }
+            }, 1000);
+
+            timer = setInterval(function () {
+                timeLeft--;
+                timeDisplay.textContent = timeLeft;
+
+                if (timeLeft <= 0) {
+                    endGame();
+                }
+            }, 1000);
+        }
+
+        target.addEventListener("click", function (event) {
+            if (!gameRunning) return;
+
+            event.stopPropagation();
+
+            score++;
+            scoreDisplay.textContent = score;
+
+            moveTarget();
+        });
+
+        function changeBackgroundColor() {
+            const r = Math.floor(Math.random() * 256);
+            const g = Math.floor(Math.random() * 256);
+            const b = Math.floor(Math.random() * 256);
+
+            arena.style.backgroundColor =
+                "rgb(" + r + ", " + g + ", " + b + ")";
+        }
+
+        function showPlayer() {
+            playerInfo.textContent =
+                "Mã sinh viên: " + studentID;
+        }
+
+        function endGame() {
+            if (!gameRunning) return;
+
+            gameRunning = false;
+
+            clearInterval(timer);
+            clearInterval(moveTimer);
+
+            target.style.display = "none";
+            startBtn.disabled = false;
+            timeInput.disabled = false;
+
+            message.textContent =
+                "Trò chơi kết thúc! Tổng điểm: " + score;
+        }
+
+        startBtn.addEventListener("click", startGame);
+
+        colorBtn.addEventListener("click", changeBackgroundColor);
+
+        playerBtn.addEventListener("click", showPlayer);
+    </script>
+
+</body>
+</html>
